@@ -134,10 +134,6 @@ def my_imfilter(image, kernel):
     # Your code here #
     # print('my_imfilter function in student.py needs to be implemented')
 
-    # Pad the input image with zeros.
-    Hi, Wi = image.shape
-    Hk, Wk = kernel.shape
-
 # (i) (4 pts) Pad the input image with zeros.
 # (ii) (4 pts) Support grayscale and color images. Note that grayscale images will be 2D
 # numpy arrays.
@@ -147,14 +143,30 @@ def my_imfilter(image, kernel):
 # undefined.
 # (v) (4 pts) Return a filtered image which is the same resolution as the input image.
 
+    # kernel应该是二维的
+    Hk, Wk = kernel.shape
     if Hk % 2 == 0 or Wk % 2 == 0:
         raise Exception('卷积核边为偶数!')
 
     padding_height = Hk//2
     padding_width = Wk//2
-    pad_image = np.pad(image, ((padding_height, padding_height),
-                               (padding_width, padding_width)))
-    filtered_image = cross_correlation(pad_image, kernel)
+
+    Hi, Wi = image.shape[0:2]
+    kernel = np.flip(np.flip(kernel, 0), 1)
+
+    # 如果图片是彩色的
+    if image.ndim == 3:
+        pad_image = np.pad(image, ((padding_height, padding_height),
+                                   (padding_width, padding_width), (0, 0)))
+        for dim in range(3):
+            for m in range(Hi):
+                for n in range(Wi):
+                    filtered_image[m, n, dim] = np.sum(
+                        kernel*pad_image[m:m+Hk, n:n+Wk, dim])
+    # 如果图片是灰色的
+    else:
+        filtered_image = cross_correlation(image, kernel)
+
     ##################
 
     return filtered_image
@@ -179,9 +191,22 @@ def my_imfilter_fft(image, kernel):
     """
     filtered_image = np.zeros(image.shape)
 
+    from scipy.signal import fftconvolve
+
+    Hk, Wk = kernel.shape
+    if Hk % 2 == 0 or Wk % 2 == 0:
+        raise Exception('卷积核边为偶数!')
+    
+    # kernel = np.flip(np.flip(kernel, 0), 1) 不需要再旋转
+    if image.ndim == 2:  # 灰度图像
+        filtered_image = fftconvolve(image.copy(), kernel, mode='same')
+    elif image.ndim == 3:  # 彩色图像
+        for i in range(3): 
+            filtered_image[:, :, i] = fftconvolve(image.copy()[:, :, i], kernel, mode='same')
+
     ##################
     # Your code here #
-    print('my_imfilter_fft function in student.py is not implemented')
+    # print('my_imfilter_fft function in student.py is not implemented')
     ##################
 
     return filtered_image
@@ -215,18 +240,25 @@ def gen_hybrid_image(image1, image2, cutoff_frequency):
 
     # Your code here:
     # Replace with your implementation
-    low_frequencies = np.zeros(image1.shape)
+    # low_frequencies = np.zeros(image1.shape)
+
+    # low_frequencies = my_imfilter(image1, kernel)
+    low_frequencies = my_imfilter_fft(image1, kernel)
 
     # (2) Remove the low frequencies from image2. The easiest way to do this is to
     #     subtract a blurred version of image2 from the original version of image2.
     #     This will give you an image centered at zero with negative values.
     # Your code here #
     # Replace with your implementation
-    high_frequencies = np.zeros(image1.shape)
+    # high_frequencies = np.zeros(image1.shape)
+
+    # high_frequencies = image2 - my_imfilter(image2, kernel)
+    high_frequencies = image2 - my_imfilter_fft(image2, kernel)
 
     # (3) Combine the high frequencies and low frequencies
     # Your code here #
-    hybrid_image = np.zeros(image1.shape)  # Replace with your implementation
+    # hybrid_image = np.zeros(image1.shape)  # Replace with your implementation
+    hybrid_image = low_frequencies + high_frequencies
 
     # (4) At this point, you need to be aware that values larger than 1.0
     # or less than 0.0 may cause issues in the functions in Python for saving
@@ -234,5 +266,8 @@ def gen_hybrid_image(image1, image2, cutoff_frequency):
     # gen_hybrid_image().
     # One option is to clip (also called clamp) all values below 0.0 to 0.0,
     # and all values larger than 1.0 to 1.0.
+    low_frequencies = np.clip(low_frequencies, 0, 1)
+    high_frequencies = np.clip(high_frequencies, 0, 1)
+    hybrid_image = np.clip(hybrid_image, 0, 1)
 
     return low_frequencies, high_frequencies, hybrid_image

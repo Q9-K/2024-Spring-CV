@@ -1,3 +1,8 @@
+'''
+Date: 2024-04-10 16:11:30
+Author: Q9K
+Description: 
+'''
 # Spring 2021: Image Processing and Computer Vision
 # Beihang Univeristy
 # Homework set 1
@@ -23,8 +28,11 @@ from student import my_imfilter, gen_hybrid_image
 
 # Setup
 # Read images and convert to floating point format
-image1 = load_image('../data/dog.bmp')
-image2 = load_image('../data/cat.bmp')
+# image1 = load_image('../data/4-einstein.bmp')
+# image2 = load_image('../data/4-marilyn.bmp')
+
+image1 = load_image('../data/mypic1.jpg')
+image2 = load_image('../data/mypic2.jpg')
 
 # display the dog and cat images
 plt.figure(figsize=(3, 3))
@@ -43,7 +51,7 @@ plt.imshow((image2*255).astype(np.uint8))
 # cutoff_frequency is the standard deviation, in pixels, of the Gaussian
 # blur that will remove high frequencies. You may tune this per image pair
 # to achieve better results.
-cutoff_frequency = 7
+cutoff_frequency = 2
 low_frequencies, high_frequencies, hybrid_image = gen_hybrid_image(
     image1, image2, cutoff_frequency)
 
