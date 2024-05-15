@@ -145,7 +145,8 @@ def get_features(image, x, y, feature_width):
 
     # This is a placeholder - replace this with your features!
     # assert feature_width % 4 == 0
-
+    
+    
     h = image.shape[0]
     w = image.shape[1]
 
@@ -234,7 +235,6 @@ def get_features(image, x, y, feature_width):
     features = features / np.linalg.norm(features, axis=-1).reshape((-1, 1))
 
     return features
-
 
 def match_features(im1_features, im2_features):
     '''
